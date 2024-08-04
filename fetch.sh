@@ -14,26 +14,48 @@ CHAPTER_URL_PREFIX='https://www.royalroad.com/fiction/63759/super-supportive/cha
 
 now="$(date +@%s.%Ns)"
 
+_with() { "${@}"; }
+
 
 do_fetch() {
     mkdir -p 'book/chapters'
 
-    #curl -o "${INDEX_FILE}" "${INDEX_URL}"
+    curl -o "${INDEX_FILE}" "${INDEX_URL}"
     # deduplicate and sort
     grep -Poe "(?<=${CHAPTER_GREP_PREFIX})[^\"]*" "${INDEX_FILE}" | python -c 'import sys; print("\n".join(sorted(set(sys.stdin.read().splitlines()))))' >"${CHAPTER_LIST_FILE}"
     # lol msys
     sed -i 's/\r\n/\n/g' "${CHAPTER_LIST_FILE}"
 
-    local 
-    cat "${CHAPTER_LIST_FILE}" | while read -r chapter; do
-        local chapter_file="book/chapters/$(python3 -c 'import sys, urllib.parse; sys.stdout.write(urllib.parse.quote(sys.argv[1].replace("/", " "), safe=" "))' "${chapter}").html"
+
+    local chapters=()
+    local chapter_files=()
+    #local chapter_urls
+
+    while read -r chapter; do
+        chapters+=("${chapter}")
+        #printf >&2 '%s %q\n' "n=${#chapters[@]}" "${chapter}"
+        #[[ "${#chapters[@]}" -gt 0 ]]
+        #chapter_urls+="(${CHAPTER_URL_PREFIX}${chapter}")
+    done <"${CHAPTER_LIST_FILE}"
+    #echo >&2 "n=${#chapters[@]}"
+
+    while read -r chapter_designation; do
+        chapter_files+=("book/chapters/${chapter_designation}.html")
+        #[[ "${#chapter_files[@]}" -gt 0 ]]
+        #printf >&2 '%s %q\n' "m=${#chapter_files[@]}" "${chapter_designation}"
+    done < <(python3 <"${CHAPTER_LIST_FILE}" -c 'import sys, urllib.parse; sys.stdout.write("".join(urllib.parse.quote(line, safe=" ")+"\n" for line in sys.stdin.read().replace("/", " ").splitlines() if line))')
+    #echo >&2 "m=${#chapter_files[@]}"
+
+    local i=0
+    while [[ "${i}" -lt "${#chapters[@]}" ]]; do
+        local chapter="${chapters["${i}"]}"
+        local chapter_file="${chapter_files["${i}"]}"
+        #local chapter_url="${chapter_urls["${i}"]}"
         local chapter_url="${CHAPTER_URL_PREFIX}${chapter}"
         printf >&2 ' %q' curl -o "${chapter_file}" "${chapter_url}"; echo >&2
         #curl -o "${chapter_file}" "${chapter_url}" && sleep 2
+        i="$(("${i}" + 1))"
     done
-
-    git add 'book/'
-    git commit -m "Royal Road fetch at ${now}"
 } # do_fetch()
 
 
@@ -57,14 +79,14 @@ git_prefetch() {
         fi
     fi
     git checkout -f 'fetch'
-}
+} # git_prefetch()
 
 git_postfetch() {
     if git diff --exit-code --quiet || git diff --cached --exit-code --quiet; then
         git add --all
         git commit -m "Fetch at ${now}"
     fi
-}
+} # git_postfetch()
 
 #git branch --show-current
 
@@ -73,27 +95,27 @@ run() {
     git_prefetch
     do_fetch
     git_postfetch
-}
+} # run()
 
 run_and_log() {
     mkdir -p logs
     run \
       >"logs/fetch ${now} stdout.log" \
       2>"logs/fetch ${now} stderr.log"
-}
+} # run_and_log()
 
 run_and_tee_log() {
     mkdir -p logs
     run \
       > >(tee "logs/fetch ${now} stdout.log") \
       2> >(tee >&2 "logs/fetch ${now} stderr.log")
-}
+} # run_and_tee_log()
 
 
 usage() {
     printf >&2 '%q' "${0}";
     echo >&2 " run|run_and_log|run_and_tee_log|do_fetch"
-}
+} # usage()
 
 
 
