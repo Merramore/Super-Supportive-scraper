@@ -60,7 +60,7 @@ do_fetch() {
         chapter_files+=("book/chapters/${chapter_designation}.html")
         #[[ "${#chapter_files[@]}" -gt 0 ]]
         #printf >&2 '%s %q\n' "m=${#chapter_files[@]}" "${chapter_designation}"
-    done < <(python3 <"${CHAPTER_LIST_FILE}" -c 'import sys, urllib.parse; sys.stdout.write("".join(urllib.parse.quote(line, safe=" ")+"\n" for line in sys.stdin.read().replace("/", " ").splitlines() if line))')
+    done < <(python3 <"${CHAPTER_LIST_FILE}" -c 'import sys, urllib.parse; sys.stdout.write("".join(urllib.parse.quote(line, safe=" ")+"\n" for line in sys.stdin.read().replace("/", " ").splitlines() if line))' | sed -e 's/\r//g')
     #echo >&2 "m=${#chapter_files[@]}"
 
     local i=0
@@ -69,10 +69,11 @@ do_fetch() {
         local chapter_file="${chapter_files["${i}"]}"
         #local chapter_url="${chapter_urls["${i}"]}"
         local chapter_url="${CHAPTER_URL_PREFIX}${chapter}"
-        printf >&2 ' %q' curl -o "${chapter_file}" "${chapter_url}"; echo >&2
-        #curl -o "${chapter_file}" "${chapter_url}" && sleep 2
+        #printf >&2 ' %q' curl -o "${chapter_file}" "${chapter_url}"; echo >&2
+        curl -o "${chapter_file}" "${chapter_url}" && sleep 2
         strip_chapter_randoms "${chapter_file}"
         i="$(("${i}" + 1))"
+        return
     done
 } # do_fetch()
 
