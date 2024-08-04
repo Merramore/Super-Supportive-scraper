@@ -17,6 +17,23 @@ now="$(date +@%s.%Ns)"
 _with() { "${@}"; }
 
 
+
+strip_chapter_randoms() {
+    local antitheft="$(grep -Poe '(?<=\.)c[a-zA-Z0-9_-]*(?=\{)' "${1}" || echo _cAntitheft)"
+    # sed equivalent: -e 's/\.c[a-zA-Z0-9_-]\+{/\._cAntiTheft{b/g'
+    sed \
+      -e "s/${antitheft}/_cAntiTheft/g" \
+      -e 's/<p class="_cAntiTheft".*\?<\/p[^>]*>//g' \
+      -e 's/<p class="c[^"]*"/<p class="c"/g' \
+      -e 's/<meta name="sentry-trace"[^>]*>/<meta name="sentry-trace" \/>/g' \
+      -e 's/<meta name="baggage"[^>]*>/<meta name="baggage" \/>/g' \
+      -e 's/<input name="__RequestVerificationToken" type="hidden"[^>]*>/<input name="__RequestVerificationToken" type="hidden" \/>/g' \
+      -e 's/email-protection#[^"]*/email-protection#/g' \
+      -e 's/window.__CF$cv$params={[^\}]*}/window.__CF$cv$params={}/g' \
+      -i "${1}"
+}
+
+
 do_fetch() {
     mkdir -p 'book/chapters'
 
@@ -54,6 +71,7 @@ do_fetch() {
         local chapter_url="${CHAPTER_URL_PREFIX}${chapter}"
         printf >&2 ' %q' curl -o "${chapter_file}" "${chapter_url}"; echo >&2
         #curl -o "${chapter_file}" "${chapter_url}" && sleep 2
+        strip_chapter_randoms "${chapter_file}"
         i="$(("${i}" + 1))"
     done
 } # do_fetch()
@@ -114,7 +132,7 @@ run_and_tee_log() {
 
 usage() {
     printf >&2 '%q' "${0}";
-    echo >&2 " run|run_and_log|run_and_tee_log|do_fetch"
+    echo >&2 "\n  run\n  run_and_log\n  run_and_tee_log\n  do_fetch\n  strip_chapter_randoms <file>"
 } # usage()
 
 
@@ -124,5 +142,6 @@ case "${1}" in
     run_and_log) run_and_log;;
     run_and_tee_log) run_and_tee_log;;
     do_fetch) do_fetch;;
+    strip_chapter_randoms) strip_chapter_randoms "${2}";;
     *) usage;;
 esac
