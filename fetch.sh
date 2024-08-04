@@ -30,6 +30,7 @@ strip_chapter_randoms() {
       -e 's/<input name="__RequestVerificationToken" type="hidden"[^>]*>/<input name="__RequestVerificationToken" type="hidden" \/>/g' \
       -e 's/email-protection#[^"]*/email-protection#/g' \
       -e 's/window.__CF$cv$params={[^\}]*}/window.__CF$cv$params={}/g' \
+      -e 's/star-63759-overall-[a-zA-Z0-9_-]*/star-63759-overall-/g' \
       -i "${1}"
 }
 
