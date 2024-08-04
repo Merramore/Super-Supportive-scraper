@@ -10,12 +10,20 @@ INDEX_FILE='book/super-supportive.html'
 CHAPTER_LIST_FILE='book/chapters.txt'
 CHAPTER_GREP_PREFIX='/fiction/63759/super-supportive/chapter/'
 CHAPTER_URL_PREFIX='https://www.royalroad.com/fiction/63759/super-supportive/chapter/'
+REQUEST_GAP=2
 
 
 now="$(date +@%s.%Ns)"
 
 _with() { "${@}"; }
 
+
+
+# rate-limited curl
+curtl() {
+    curl "${@}"
+    sleep "${REQUEST_GAP}"
+}
 
 
 common_randoms=(
@@ -59,7 +67,8 @@ strip_chapter_randoms() {
 do_fetch() {
     mkdir -p 'book/chapters'
 
-    curl -o "${INDEX_FILE}" "${INDEX_URL}"
+    printf 'Downloading: %q\n' >&2 "${INDEX_FILE}"
+    curtl -o "${INDEX_FILE}" "${INDEX_URL}"
     # deduplicate and sort
     grep -Poe "(?<=${CHAPTER_GREP_PREFIX})[^\"]*" "${INDEX_FILE}" | python -c 'import sys; print("\n".join(sorted(set(sys.stdin.read().splitlines()))))' >"${CHAPTER_LIST_FILE}"
     # lol msys
@@ -91,11 +100,11 @@ do_fetch() {
         local chapter_file="${chapter_files["${i}"]}"
         #local chapter_url="${chapter_urls["${i}"]}"
         local chapter_url="${CHAPTER_URL_PREFIX}${chapter}"
-        #printf >&2 ' %q' curl -o "${chapter_file}" "${chapter_url}"; echo >&2
-        curl -o "${chapter_file}" "${chapter_url}" && sleep 2
+        #printf >&2 ' %q' curtl -o "${chapter_file}" "${chapter_url}"; echo >&2
+        printf 'Downloading: %q\n' >&2 "${chapter_file}"
+        curtl -o "${chapter_file}" "${chapter_url}"
         strip_chapter_randoms "${chapter_file}"
         i="$(("${i}" + 1))"
-        return
     done
 } # do_fetch()
 
