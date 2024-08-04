@@ -83,17 +83,16 @@ git_prefetch() {
     local last_rev="$(git rev-parse HEAD)"
       # test commit failure because sometimes diff --staged returns true when nothing is staged
     if git diff --cached --exit-code --quiet \
-      && git commit -m "Pre-fetch autocommit of staged changes\nFrom: ${last_rev}\nTime: ${now}" \
+      && git commit -m "Pre-fetch autocommit of staged changes\nFrom: ${last_rev}\nTime: ${now}" >&2 \
     ; then
         if git diff --exit-code --quiet; then
             git add --all
-            git commit -m "Pre-fetch autocommit of unstaged or untracked changes\nFrom: ${last_rev}\nTime: ${now}" || true
+            git commit -m "Pre-fetch autocommit of unstaged or untracked changes\nFrom: ${last_rev}\nTime: ${now}" >&2 || true
         fi
         git tag "prefetch-autocommit-${now}"
     elif git diff --exit-code --quiet; then
         git add --all
-        if git commit -m "Pre-fetch autocommit unstaged\nFrom: ${last_rev}\nTime: ${now}"
-        then
+        if git commit -m "Pre-fetch autocommit unstaged\nFrom: ${last_rev}\nTime: ${now}" >&2; then
             git tag "prefetch-autocommit-${now}"
         fi
     fi
@@ -103,7 +102,7 @@ git_prefetch() {
 git_postfetch() {
     if git diff --exit-code --quiet || git diff --cached --exit-code --quiet; then
         git add --all
-        git commit -m "Fetch at ${now}"
+        git commit -m "Fetch at ${now}" >&2
     fi
 } # git_postfetch()
 
