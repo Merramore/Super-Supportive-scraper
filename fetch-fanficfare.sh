@@ -88,6 +88,7 @@ git_prefetch() {
             git tag "prefetch-autocommit-${now}"
         fi
     fi
+    git branch 'fanficfare' 2>&- || true
     git checkout -f 'fanficfare'
 } # git_prefetch()
 
