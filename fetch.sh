@@ -71,6 +71,8 @@ do_fetch() {
     curtl -o "${INDEX_FILE}" "${INDEX_URL}"
     # deduplicate and sort
     grep -Poe "(?<=${CHAPTER_GREP_PREFIX})[^\"]*" "${INDEX_FILE}" | python -c 'import sys; print("\n".join(sorted(set(sys.stdin.read().splitlines()))))' >"${CHAPTER_LIST_FILE}"
+    # pretty after parsing
+    strip_index_randoms "${chapter_file}"
     # lol msys
     sed -i 's/\r\n/\n/g' "${CHAPTER_LIST_FILE}"
 
