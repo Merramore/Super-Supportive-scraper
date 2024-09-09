@@ -43,6 +43,9 @@ bash fetch-<variant>.sh run
 
 `fetch-fanficfare.sh` will create, checkout, and commit to the `fanficfare` branch.
 
+**Both variants will commit any untracked or modified files before forcing a checkout.**\
+This is failsafe both for scheduled runs and for running from the wrong directory by mistake.
+
 Output structure:
 > - `./book/`
 >   - `super_supportive.html` curl  downloaded index
