@@ -39,8 +39,9 @@ strip_story_randoms() {
 
 
 do_fetch() {
-    fanficfare_cmd=("$(realpath venv/Scripts/fanficfare)")
+    #fanficfare_cmd=("$(realpath venv/Scripts/fanficfare)")
     #fanficfare_cmd=(venv/Scripts/python -m fanficfare)
+    fanficfare_cmd=(fanficfare)
 
     mkdir -p 'book'
 
