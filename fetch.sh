@@ -50,7 +50,7 @@ strip_index_randoms() {
 }
 
 chapter_randoms=(
-    -e 's/<p class="c[^"]*"/<p class="c"/g'
+    -e 's/<p class="c[^"]*"/<p class="_cContent"/g'
 )
 strip_chapter_randoms() {
     local antitheft="$(grep -Poe '(?<=\.)c[a-zA-Z0-9_-]*(?=\{)' "${1}" || echo _cAntitheft)"
