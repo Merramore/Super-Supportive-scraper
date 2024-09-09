@@ -151,15 +151,15 @@ run() {
 run_and_log() {
     mkdir -p logs
     run \
-      >"logs/fetch ${now} stdout.log" \
-      2>"logs/fetch ${now} stderr.log"
+      >"logs/fetch-curl ${now} stdout.log" \
+      2>"logs/fetch-curl ${now} stderr.log"
 } # run_and_log()
 
 run_and_tee_log() {
     mkdir -p logs
     run \
-      > >(tee "logs/fetch ${now} stdout.log") \
-      2> >(tee >&2 "logs/fetch ${now} stderr.log")
+      > >(tee "logs/fetch-curl ${now} stdout.log") \
+      2> >(tee >&2 "logs/fetch-curl ${now} stderr.log")
 } # run_and_tee_log()
 
 
